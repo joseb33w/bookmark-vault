@@ -1,0 +1,780 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Bookmark Vault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg-0: #0b0f1a;
+    --bg-1: #0f1524;
+    --bg-2: #151c30;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.16);
+    --fg: #e6ecf6;
+    --fg-dim: #8b95ad;
+    --accent: #7c5cff;
+    --accent-2: #36c5ff;
+    --danger: #ff5c7a;
+    --danger-bg: rgba(255, 92, 122, 0.12);
+    --ok: #4ade80;
+    --shadow-lg: 0 24px 60px -20px rgba(0, 0, 0, 0.6), 0 8px 24px -8px rgba(0, 0, 0, 0.4);
+    --radius: 14px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(1100px 700px at 80% -10%, rgba(124, 92, 255, 0.22), transparent 60%),
+                radial-gradient(900px 600px at -10% 90%, rgba(54, 197, 255, 0.16), transparent 60%),
+                var(--bg-0);
+    color: var(--fg);
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  .app {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px 20px 96px;
+  }
+
+  /* ---------- HEADER ---------- */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    letter-spacing: -0.02em;
+  }
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    display: grid;
+    place-items: center;
+    box-shadow: 0 8px 24px -8px rgba(124, 92, 255, 0.6);
+    color: #fff;
+  }
+  .brand-mark svg { width: 20px; height: 20px; }
+  .user-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+  }
+  .user-email {
+    color: var(--fg-dim);
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ---------- CARD ---------- */
+  .card {
+    background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow-lg);
+  }
+  .card + .card { margin-top: 20px; }
+
+  .card-title {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin: 0 0 16px;
+    letter-spacing: -0.01em;
+  }
+
+  /* ---------- AUTH SCREEN ---------- */
+  .auth-wrap {
+    min-height: calc(100vh - 80px);
+    display: grid;
+    place-items: center;
+  }
+  .auth-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 32px 28px;
+  }
+  .auth-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .auth-header .brand-mark {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    margin: 0 auto 14px;
+  }
+  .auth-header .brand-mark svg { width: 26px; height: 26px; }
+  .auth-header h1 {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.6rem;
+    margin: 0 0 6px;
+    letter-spacing: -0.02em;
+  }
+  .auth-header p {
+    color: var(--fg-dim);
+    margin: 0;
+    font-size: 0.95rem;
+  }
+
+  .tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    margin-bottom: 20px;
+    gap: 4px;
+  }
+  .tab {
+    background: transparent;
+    border: none;
+    color: var(--fg-dim);
+    padding: 9px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 500;
+    font-size: 0.92rem;
+    transition: all 0.18s ease;
+  }
+  .tab[aria-selected="true"] {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    box-shadow: 0 4px 12px -4px rgba(124, 92, 255, 0.5);
+  }
+
+  /* ---------- FORM ---------- */
+  .field { display: block; margin-bottom: 14px; }
+  .field-label {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--fg-dim);
+    margin-bottom: 6px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+  .input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 11px 14px;
+    color: var(--fg);
+    font: inherit;
+    font-size: 0.95rem;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.18);
+  }
+  .input::placeholder { color: rgba(139, 149, 173, 0.6); }
+
+  .btn {
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 11px 18px;
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.18s ease, opacity 0.18s ease, background 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    width: 100%;
+    box-shadow: 0 8px 20px -8px rgba(124, 92, 255, 0.6);
+  }
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px -8px rgba(124, 92, 255, 0.75);
+  }
+  .btn-ghost {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--fg);
+    border: 1px solid var(--line);
+  }
+  .btn-ghost:hover:not(:disabled) { background: rgba(255, 255, 255, 0.1); }
+  .btn-danger {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border: 1px solid rgba(255, 92, 122, 0.28);
+    padding: 7px 12px;
+    font-size: 0.85rem;
+  }
+  .btn-danger:hover:not(:disabled) {
+    background: rgba(255, 92, 122, 0.2);
+    border-color: rgba(255, 92, 122, 0.5);
+  }
+
+  /* ---------- BANNER ---------- */
+  .banner {
+    margin-top: 14px;
+    padding: 11px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    border: 1px solid;
+    line-height: 1.45;
+  }
+  .banner-error {
+    background: rgba(255, 92, 122, 0.1);
+    color: #ffb1c0;
+    border-color: rgba(255, 92, 122, 0.32);
+  }
+  .banner-info {
+    background: rgba(54, 197, 255, 0.1);
+    color: #b3e2ff;
+    border-color: rgba(54, 197, 255, 0.32);
+  }
+  .banner-success {
+    background: rgba(74, 222, 128, 0.1);
+    color: #b5f0c8;
+    border-color: rgba(74, 222, 128, 0.32);
+  }
+
+  /* ---------- MAIN APP ---------- */
+  .save-form {
+    display: grid;
+    gap: 12px;
+  }
+  @media (min-width: 640px) {
+    .save-form .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+  }
+
+  .list-empty {
+    text-align: center;
+    padding: 36px 16px;
+    color: var(--fg-dim);
+  }
+  .list-empty-icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    opacity: 0.6;
+  }
+  .list-count {
+    color: var(--fg-dim);
+    font-size: 0.85rem;
+    font-weight: 400;
+    margin-left: 6px;
+  }
+
+  .bookmarks { list-style: none; padding: 0; margin: 0; }
+  .bookmark {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.02);
+    transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+  }
+  .bookmark + .bookmark { margin-top: 10px; }
+  .bookmark:hover {
+    border-color: var(--line-strong);
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .bookmark-favicon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(124, 92, 255, 0.18);
+    display: grid;
+    place-items: center;
+    color: var(--accent);
+    flex-shrink: 0;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    overflow: hidden;
+  }
+  .bookmark-favicon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .bookmark-content {
+    min-width: 0;
+    flex: 1;
+  }
+  .bookmark-title {
+    display: block;
+    color: var(--fg);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.96rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .bookmark-title:hover { color: var(--accent-2); text-decoration: underline; }
+  .bookmark-url {
+    display: block;
+    color: var(--fg-dim);
+    font-size: 0.82rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+
+  .skeleton {
+    height: 56px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+    background-size: 200% 100%;
+    border-radius: var(--radius-sm);
+    animation: shimmer 1.4s infinite linear;
+  }
+  .skeleton + .skeleton { margin-top: 10px; }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 480px) {
+    .app { padding: 16px 14px 80px; }
+    .auth-card { padding: 24px 20px; }
+    .card { padding: 20px 16px; }
+    .brand { font-size: 1.15rem; gap: 10px; }
+    .brand-mark { width: 34px; height: 34px; border-radius: 10px; }
+    .brand-mark svg { width: 17px; height: 17px; }
+    .user-email { display: none; }
+    .user-bar .btn-ghost { padding: 8px 14px; font-size: 0.88rem; }
+    .header { gap: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- AUTH SCREEN -->
+  <section id="view-auth" class="auth-wrap">
+    <div class="card auth-card">
+      <div class="auth-header">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+          </svg>
+        </div>
+        <h1>Bookmark Vault</h1>
+        <p id="auth-subtitle">Sign in to access your saved links</p>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Auth mode">
+        <button class="tab" role="tab" id="tab-signin" aria-selected="true" data-mode="signin">Sign in</button>
+        <button class="tab" role="tab" id="tab-signup" aria-selected="false" data-mode="signup">Sign up</button>
+      </div>
+
+      <form id="auth-form" novalidate>
+        <label class="field">
+          <span class="field-label">Email</span>
+          <input class="input" type="email" id="auth-email" name="email" placeholder="you@example.com" required autocomplete="email" />
+        </label>
+        <label class="field">
+          <span class="field-label">Password</span>
+          <input class="input" type="password" id="auth-password" name="password" placeholder="At least 6 characters" required minlength="6" autocomplete="current-password" />
+        </label>
+        <button type="submit" class="btn btn-primary" id="auth-submit">Sign in</button>
+        <div id="auth-banner" class="banner hidden" role="status"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- MAIN APP -->
+  <section id="view-main" class="hidden">
+    <header class="header">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+          </svg>
+        </div>
+        Bookmark Vault
+      </div>
+      <div class="user-bar">
+        <span class="user-email" id="user-email"></span>
+        <button class="btn btn-ghost" id="signout-btn" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <div class="card">
+      <h2 class="card-title">Save a bookmark</h2>
+      <form id="save-form" class="save-form" novalidate>
+        <div class="row-2">
+          <label class="field" style="margin: 0;">
+            <span class="field-label">URL</span>
+            <input class="input" type="url" id="bm-url" name="url" placeholder="https://example.com" required autocomplete="off" />
+          </label>
+          <label class="field" style="margin: 0;">
+            <span class="field-label">Title</span>
+            <input class="input" type="text" id="bm-title" name="title" placeholder="What is this?" required maxlength="200" autocomplete="off" />
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary" id="save-btn" style="width: auto; align-self: flex-start;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+            <polyline points="17 21 17 13 7 13 7 21" />
+            <polyline points="7 3 7 8 15 8" />
+          </svg>
+          Save
+        </button>
+        <div id="save-banner" class="banner hidden" role="status"></div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">Your bookmarks <span class="list-count" id="list-count"></span></h2>
+      <div id="list-loading">
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+      </div>
+      <div id="list-empty" class="list-empty hidden">
+        <div class="list-empty-icon">📚</div>
+        <div>No bookmarks yet. Save one above.</div>
+      </div>
+      <ul id="list" class="bookmarks hidden" aria-live="polite"></ul>
+    </div>
+  </section>
+
+</div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+  const SUPABASE_URL = 'https://xhhmxabftbyxrirvvihn.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_NZHoIxqqpSvVBP8MrLHCYA_gmg1AbN-';
+  const TABLE = 'usr_nmexs7bytxq2_bookmarks';
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ---------- DOM ----------
+  const $ = (id) => document.getElementById(id);
+  const viewAuth = $('view-auth');
+  const viewMain = $('view-main');
+  const tabSignin = $('tab-signin');
+  const tabSignup = $('tab-signup');
+  const authSubtitle = $('auth-subtitle');
+  const authForm = $('auth-form');
+  const authEmail = $('auth-email');
+  const authPassword = $('auth-password');
+  const authSubmit = $('auth-submit');
+  const authBanner = $('auth-banner');
+  const userEmailEl = $('user-email');
+  const signoutBtn = $('signout-btn');
+  const saveForm = $('save-form');
+  const bmUrl = $('bm-url');
+  const bmTitle = $('bm-title');
+  const saveBtn = $('save-btn');
+  const saveBanner = $('save-banner');
+  const listLoading = $('list-loading');
+  const listEmpty = $('list-empty');
+  const listEl = $('list');
+  const listCount = $('list-count');
+
+  let mode = 'signin';
+  let currentUser = null;
+
+  // ---------- HELPERS ----------
+  function setBanner(el, text, kind) {
+    if (!text) { el.classList.add('hidden'); el.textContent = ''; return; }
+    el.classList.remove('hidden', 'banner-error', 'banner-info', 'banner-success');
+    el.classList.add('banner', `banner-${kind}`);
+    el.textContent = text;
+  }
+
+  function setMode(next) {
+    mode = next;
+    const isSignup = next === 'signup';
+    tabSignin.setAttribute('aria-selected', String(!isSignup));
+    tabSignup.setAttribute('aria-selected', String(isSignup));
+    authSubmit.textContent = isSignup ? 'Create account' : 'Sign in';
+    authSubtitle.textContent = isSignup
+      ? 'Create an account to save your links'
+      : 'Sign in to access your saved links';
+    authPassword.setAttribute('autocomplete', isSignup ? 'new-password' : 'current-password');
+    setBanner(authBanner, '', 'info');
+  }
+
+  function initial(s) {
+    const t = (s || '?').trim();
+    return t ? t[0].toUpperCase() : '?';
+  }
+
+  function showView(name) {
+    if (name === 'main') {
+      viewAuth.classList.add('hidden');
+      viewMain.classList.remove('hidden');
+    } else {
+      viewAuth.classList.remove('hidden');
+      viewMain.classList.add('hidden');
+    }
+  }
+
+  // ---------- AUTH ----------
+  tabSignin.addEventListener('click', () => setMode('signin'));
+  tabSignup.addEventListener('click', () => setMode('signup'));
+
+  authForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = authEmail.value.trim();
+    const password = authPassword.value;
+    if (!email || !password) return;
+
+    authSubmit.disabled = true;
+    setBanner(authBanner, '', 'info');
+    const originalText = authSubmit.textContent;
+    authSubmit.textContent = mode === 'signup' ? 'Creating account…' : 'Signing in…';
+
+    try {
+      if (mode === 'signup') {
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        if (data.session) {
+          // Email confirmation disabled — user is signed in
+          await onSignedIn(data.session.user);
+          return;
+        }
+        // Email confirmation required — switch UI to sign-in tab first, then surface the message.
+        setMode('signin');
+        setBanner(
+          authBanner,
+          `Check ${email} for a confirmation link, then come back and sign in.`,
+          'info'
+        );
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        await onSignedIn(data.user);
+      }
+    } catch (err) {
+      const msg = err?.message || 'Something went wrong. Try again.';
+      setBanner(authBanner, msg, 'error');
+    } finally {
+      authSubmit.disabled = false;
+      authSubmit.textContent = originalText;
+    }
+  });
+
+  signoutBtn.addEventListener('click', async () => {
+    signoutBtn.disabled = true;
+    await supabase.auth.signOut();
+    currentUser = null;
+    listEl.innerHTML = '';
+    listEl.classList.add('hidden');
+    listEmpty.classList.add('hidden');
+    listLoading.classList.remove('hidden');
+    saveForm.reset();
+    setBanner(saveBanner, '', 'info');
+    showView('auth');
+    setMode('signin');
+    authEmail.value = '';
+    authPassword.value = '';
+    signoutBtn.disabled = false;
+  });
+
+  async function onSignedIn(user) {
+    currentUser = user;
+    userEmailEl.textContent = user.email || '';
+    userEmailEl.title = user.email || '';
+    showView('main');
+    await loadBookmarks();
+  }
+
+  // ---------- BOOKMARKS ----------
+  saveForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    const url = bmUrl.value.trim();
+    const title = bmTitle.value.trim();
+    if (!url || !title) return;
+
+    saveBtn.disabled = true;
+    setBanner(saveBanner, '', 'info');
+
+    try {
+      const { data, error } = await supabase
+        .from(TABLE)
+        .insert({ user_id: currentUser.id, url, title })
+        .select()
+        .single();
+      if (error) throw error;
+      prependBookmark(data);
+      saveForm.reset();
+      bmUrl.focus();
+    } catch (err) {
+      setBanner(saveBanner, err?.message || 'Could not save bookmark.', 'error');
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+
+  async function loadBookmarks() {
+    listLoading.classList.remove('hidden');
+    listEl.classList.add('hidden');
+    listEmpty.classList.add('hidden');
+    listEl.innerHTML = '';
+
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select('id, url, title, created_at')
+      .order('created_at', { ascending: false });
+
+    listLoading.classList.add('hidden');
+
+    if (error) {
+      setBanner(saveBanner, error.message || 'Could not load bookmarks.', 'error');
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      listEmpty.classList.remove('hidden');
+      listCount.textContent = '';
+      return;
+    }
+
+    listEl.classList.remove('hidden');
+    for (const row of data) appendBookmark(row);
+    updateCount();
+  }
+
+  function updateCount() {
+    const n = listEl.children.length;
+    listCount.textContent = n ? `(${n})` : '';
+    if (n === 0) {
+      listEl.classList.add('hidden');
+      listEmpty.classList.remove('hidden');
+    } else {
+      listEl.classList.remove('hidden');
+      listEmpty.classList.add('hidden');
+    }
+  }
+
+  function createRow(row) {
+    const li = document.createElement('li');
+    li.className = 'bookmark';
+    li.dataset.id = row.id;
+
+    const fav = document.createElement('div');
+    fav.className = 'bookmark-favicon';
+    fav.textContent = initial(row.title);
+
+    const content = document.createElement('div');
+    content.className = 'bookmark-content';
+
+    const a = document.createElement('a');
+    a.className = 'bookmark-title';
+    a.href = row.url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = row.title;
+    a.title = row.title;
+
+    const urlSpan = document.createElement('span');
+    urlSpan.className = 'bookmark-url';
+    urlSpan.textContent = row.url;
+    urlSpan.title = row.url;
+
+    content.appendChild(a);
+    content.appendChild(urlSpan);
+
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'btn btn-danger';
+    del.textContent = 'Delete';
+    del.dataset.action = 'delete';
+    del.addEventListener('click', () => deleteBookmark(row.id, li, del));
+
+    li.appendChild(fav);
+    li.appendChild(content);
+    li.appendChild(del);
+    return li;
+  }
+
+  function prependBookmark(row) {
+    const li = createRow(row);
+    if (listEl.firstChild) listEl.insertBefore(li, listEl.firstChild);
+    else listEl.appendChild(li);
+    updateCount();
+  }
+
+  function appendBookmark(row) {
+    listEl.appendChild(createRow(row));
+  }
+
+  async function deleteBookmark(id, li, btn) {
+    btn.disabled = true;
+    btn.textContent = 'Deleting…';
+    const { error } = await supabase.from(TABLE).delete().eq('id', id);
+    if (error) {
+      btn.disabled = false;
+      btn.textContent = 'Delete';
+      setBanner(saveBanner, error.message || 'Could not delete bookmark.', 'error');
+      return;
+    }
+    li.remove();
+    updateCount();
+  }
+
+  // ---------- BOOT ----------
+  (async function boot() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      await onSignedIn(session.user);
+    } else {
+      showView('auth');
+      setMode('signin');
+    }
+
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        currentUser = null;
+        showView('auth');
+      }
+    });
+  })();
+</script>
+</body>
+</html>
