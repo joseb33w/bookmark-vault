@@ -1,0 +1,1393 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0717" />
+<title>Bookmark Vault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg-0: #07050f;
+    --bg-1: #100a24;
+    --bg-2: #1a1238;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.18);
+    --fg: #f1eefb;
+    --fg-dim: #9b94c2;
+    --accent: #a87bff;
+    --accent-2: #38d3ff;
+    --accent-3: #ff7ad1;
+    --danger: #ff6b8b;
+    --danger-bg: rgba(255, 107, 139, 0.14);
+    --ok: #4ade80;
+    --shadow-lg: 0 30px 80px -24px rgba(0, 0, 0, 0.7), 0 12px 32px -12px rgba(124, 92, 255, 0.35);
+    --radius: 18px;
+    --radius-sm: 12px;
+    --tilt: 0deg;
+    --tilt-x: 0deg;
+    --tilt-y: 0deg;
+    --mx: 50%;
+    --my: 50%;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-0);
+    color: var(--fg);
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+
+  /* ---------- 3D BACKGROUND ---------- */
+  .scene {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    perspective: 1400px;
+    transform-style: preserve-3d;
+    background:
+      radial-gradient(1200px 800px at 80% -10%, rgba(168, 123, 255, 0.20), transparent 60%),
+      radial-gradient(900px 700px at -10% 90%, rgba(56, 211, 255, 0.16), transparent 60%),
+      radial-gradient(700px 600px at 100% 100%, rgba(255, 122, 209, 0.10), transparent 60%),
+      linear-gradient(180deg, #07050f 0%, #0a0820 50%, #07050f 100%);
+  }
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.55;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+  .orb-1 {
+    width: 480px; height: 480px;
+    top: -120px; left: -100px;
+    background: radial-gradient(circle at 30% 30%, #a87bff, transparent 70%);
+    animation: float1 24s ease-in-out infinite;
+  }
+  .orb-2 {
+    width: 520px; height: 520px;
+    bottom: -160px; right: -120px;
+    background: radial-gradient(circle at 50% 50%, #38d3ff, transparent 65%);
+    animation: float2 28s ease-in-out infinite;
+  }
+  .orb-3 {
+    width: 360px; height: 360px;
+    top: 35%; right: 12%;
+    background: radial-gradient(circle at 50% 50%, #ff7ad1, transparent 70%);
+    opacity: 0.35;
+    animation: float3 30s ease-in-out infinite;
+  }
+  .orb-4 {
+    width: 300px; height: 300px;
+    top: 60%; left: 10%;
+    background: radial-gradient(circle at 50% 50%, #6a5acd, transparent 70%);
+    opacity: 0.30;
+    animation: float4 26s ease-in-out infinite;
+  }
+  @keyframes float1 {
+    0%, 100% { transform: translate3d(0,0,0) rotateX(0deg) rotateY(0deg) scale(1); }
+    50%      { transform: translate3d(60px, 40px, 120px) rotateX(20deg) rotateY(35deg) scale(1.1); }
+  }
+  @keyframes float2 {
+    0%, 100% { transform: translate3d(0,0,0) rotateX(0deg) rotateY(0deg) scale(1); }
+    50%      { transform: translate3d(-80px, -50px, 80px) rotateX(-25deg) rotateY(-30deg) scale(1.12); }
+  }
+  @keyframes float3 {
+    0%, 100% { transform: translate3d(0,0,0) rotateZ(0deg) scale(1); }
+    50%      { transform: translate3d(-40px, 80px, 60px) rotateZ(45deg) scale(0.9); }
+  }
+  @keyframes float4 {
+    0%, 100% { transform: translate3d(0,0,0) rotateZ(0deg) scale(1); }
+    50%      { transform: translate3d(50px, -60px, 100px) rotateZ(-60deg) scale(1.05); }
+  }
+
+  /* subtle grid grain */
+  .scene::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px) 0 0/40px 40px;
+    mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.7), transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.7), transparent 75%);
+    opacity: 0.35;
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px 20px 96px;
+  }
+
+  /* ---------- HEADER ---------- */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    animation: fadeDown 0.7s 0.05s both cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes fadeDown {
+    0%   { opacity: 0; transform: translateY(-12px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.45rem;
+    letter-spacing: -0.02em;
+  }
+
+  /* 3D brand mark: rotating gradient cube-ish badge */
+  .brand-mark {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    position: relative;
+    transform-style: preserve-3d;
+    background:
+      linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 60%, var(--accent-3) 100%);
+    box-shadow:
+      0 12px 32px -10px rgba(168, 123, 255, 0.7),
+      inset 0 1px 0 rgba(255,255,255,0.2),
+      inset 0 -10px 18px -8px rgba(0,0,0,0.4);
+    animation: badgeFloat 7s ease-in-out infinite;
+  }
+  .brand-mark::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 15px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0));
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+  }
+  .brand-mark svg { width: 22px; height: 22px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+  @keyframes badgeFloat {
+    0%, 100% { transform: perspective(600px) rotateY(0deg) rotateX(0deg) translateY(0px); }
+    25%      { transform: perspective(600px) rotateY(15deg) rotateX(-6deg) translateY(-3px); }
+    50%      { transform: perspective(600px) rotateY(0deg)  rotateX(0deg)  translateY(-5px); }
+    75%      { transform: perspective(600px) rotateY(-15deg) rotateX(6deg) translateY(-3px); }
+  }
+
+  .user-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+  }
+  .user-email {
+    color: var(--fg-dim);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ---------- CARD (glassmorphism + 3D tilt host) ---------- */
+  .card {
+    position: relative;
+    background:
+      linear-gradient(180deg, rgba(26, 18, 56, 0.72) 0%, rgba(16, 10, 36, 0.78) 100%);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 26px;
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    transform-style: preserve-3d;
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, border-color 0.3s ease;
+    overflow: hidden;
+  }
+  .card + .card { margin-top: 22px; }
+
+  /* edge sheen */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.02) 35%, rgba(255,255,255,0) 65%, rgba(168,123,255,0.18));
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* cursor-tracked glow halo */
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+    background: radial-gradient(420px circle at var(--mx) var(--my), rgba(168, 123, 255, 0.18), transparent 45%);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .card.tilt-active::after { opacity: 1; }
+
+  .card.tilt {
+    transform: perspective(1200px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateZ(0);
+  }
+  .card > * { position: relative; z-index: 2; }
+
+  .card-title {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin: 0 0 18px;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ---------- AUTH SCREEN ---------- */
+  .auth-wrap {
+    min-height: calc(100vh - 80px);
+    display: grid;
+    place-items: center;
+    perspective: 1400px;
+  }
+  .auth-card {
+    width: 100%;
+    max-width: 440px;
+    padding: 36px 30px;
+    animation: popIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes popIn {
+    0%   { opacity: 0; transform: perspective(1200px) rotateX(8deg) translateY(20px) scale(0.96); }
+    100% { opacity: 1; transform: perspective(1200px) rotateX(0deg)  translateY(0)    scale(1); }
+  }
+  .auth-header {
+    text-align: center;
+    margin-bottom: 26px;
+  }
+  .auth-header .brand-mark {
+    width: 60px;
+    height: 60px;
+    border-radius: 17px;
+    margin: 0 auto 16px;
+  }
+  .auth-header .brand-mark svg { width: 30px; height: 30px; }
+  .auth-header h1 {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.85rem;
+    margin: 0 0 8px;
+    letter-spacing: -0.025em;
+    background: linear-gradient(135deg, #fff 0%, #d3c5ff 50%, #aee9ff 100%);
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .auth-header p {
+    color: var(--fg-dim);
+    margin: 0;
+    font-size: 0.95rem;
+  }
+
+  .tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: rgba(0, 0, 0, 0.32);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    margin-bottom: 22px;
+    gap: 4px;
+    position: relative;
+  }
+  .tab {
+    background: transparent;
+    border: none;
+    color: var(--fg-dim);
+    padding: 10px 14px;
+    border-radius: 9px;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 500;
+    font-size: 0.93rem;
+    transition: color 0.22s ease, transform 0.22s ease;
+    position: relative;
+    z-index: 1;
+  }
+  .tab:hover { color: var(--fg); }
+  .tab[aria-selected="true"] {
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow:
+      0 6px 18px -6px rgba(168, 123, 255, 0.6),
+      inset 0 1px 0 rgba(255,255,255,0.2);
+    transform: translateZ(0);
+  }
+
+  /* ---------- FORM ---------- */
+  .field { display: block; margin-bottom: 16px; }
+  .field-label {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--fg-dim);
+    margin-bottom: 7px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.32);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 12px 15px;
+    color: var(--fg);
+    font: inherit;
+    font-size: 0.96rem;
+    transition: border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease, transform 0.22s ease;
+  }
+  .input:hover { border-color: var(--line-strong); }
+  .input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: rgba(0, 0, 0, 0.42);
+    box-shadow:
+      0 0 0 4px rgba(168, 123, 255, 0.18),
+      0 8px 24px -8px rgba(168, 123, 255, 0.45);
+    transform: translateY(-1px);
+  }
+  .input::placeholder { color: rgba(155, 148, 194, 0.55); }
+
+  .btn {
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 12px 20px;
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition:
+      transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.22s ease,
+      opacity 0.18s ease,
+      background 0.22s ease,
+      border-color 0.22s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    transform-style: preserve-3d;
+  }
+  .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent) 0%, #8a5cff 35%, var(--accent-2) 100%);
+    color: #fff;
+    width: 100%;
+    box-shadow:
+      0 12px 28px -10px rgba(168, 123, 255, 0.65),
+      inset 0 1px 0 rgba(255,255,255,0.22),
+      inset 0 -8px 16px -8px rgba(0,0,0,0.3);
+  }
+  .btn-primary:hover:not(:disabled) {
+    transform: perspective(600px) translateY(-3px) rotateX(-2deg);
+    box-shadow:
+      0 18px 36px -10px rgba(168, 123, 255, 0.8),
+      inset 0 1px 0 rgba(255,255,255,0.28);
+  }
+  .btn-primary:active:not(:disabled) {
+    transform: perspective(600px) translateY(0) rotateX(2deg) scale(0.99);
+    box-shadow:
+      0 6px 14px -6px rgba(168, 123, 255, 0.55),
+      inset 0 2px 6px rgba(0,0,0,0.25);
+  }
+
+  .btn-ghost {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--fg);
+    border: 1px solid var(--line);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--line-strong);
+    transform: translateY(-1px);
+  }
+  .btn-ghost:active:not(:disabled) { transform: translateY(0); }
+
+  .btn-danger {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border: 1px solid rgba(255, 107, 139, 0.3);
+    padding: 8px 13px;
+    font-size: 0.86rem;
+  }
+  .btn-danger:hover:not(:disabled) {
+    background: rgba(255, 107, 139, 0.22);
+    border-color: rgba(255, 107, 139, 0.55);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px -6px rgba(255, 107, 139, 0.5);
+  }
+  .btn-danger:active:not(:disabled) { transform: translateY(0); }
+
+  /* ---------- BANNER ---------- */
+  .banner {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    border: 1px solid;
+    line-height: 1.45;
+    animation: bannerIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes bannerIn {
+    0% { opacity: 0; transform: translateY(-6px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .banner-error {
+    background: rgba(255, 107, 139, 0.1);
+    color: #ffb1c0;
+    border-color: rgba(255, 107, 139, 0.36);
+  }
+  .banner-info {
+    background: rgba(56, 211, 255, 0.1);
+    color: #b3e8ff;
+    border-color: rgba(56, 211, 255, 0.36);
+  }
+  .banner-success {
+    background: rgba(74, 222, 128, 0.1);
+    color: #b5f0c8;
+    border-color: rgba(74, 222, 128, 0.36);
+  }
+
+  /* ---------- MAIN APP ---------- */
+  .save-form { display: grid; gap: 14px; }
+  @media (min-width: 640px) {
+    .save-form .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+  }
+
+  .save-form .btn-primary { width: auto; justify-self: start; padding-left: 22px; padding-right: 22px; }
+
+  .list-empty {
+    text-align: center;
+    padding: 42px 16px;
+    color: var(--fg-dim);
+  }
+  .list-empty-icon {
+    font-size: 2.2rem;
+    margin-bottom: 10px;
+    opacity: 0.7;
+    display: inline-block;
+    animation: floatY 4s ease-in-out infinite;
+  }
+  @keyframes floatY {
+    0%, 100% { transform: translateY(0) rotateZ(0deg); }
+    50%      { transform: translateY(-8px) rotateZ(3deg); }
+  }
+  .list-count {
+    color: var(--fg-dim);
+    font-size: 0.85rem;
+    font-weight: 400;
+    margin-left: 6px;
+  }
+
+  /* ---------- SEARCH ---------- */
+  .search-row {
+    margin: 0 0 16px;
+    animation: fadeDown 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .search-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    width: 16px;
+    height: 16px;
+    color: var(--fg-dim);
+    pointer-events: none;
+    transition: color 0.22s ease;
+  }
+  .search-input-wrap:focus-within .search-icon { color: var(--accent); }
+
+  .search-input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.32);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 11px 88px 11px 40px;
+    color: var(--fg);
+    font: inherit;
+    font-size: 0.94rem;
+    transition: border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .search-input::-webkit-search-cancel-button,
+  .search-input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }
+  .search-input:hover { border-color: var(--line-strong); }
+  .search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: rgba(0, 0, 0, 0.42);
+    box-shadow:
+      0 0 0 4px rgba(168, 123, 255, 0.18),
+      0 8px 22px -10px rgba(168, 123, 255, 0.45);
+  }
+  .search-input::placeholder { color: rgba(155, 148, 194, 0.55); }
+
+  .search-clear {
+    position: absolute;
+    right: 44px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--fg-dim);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    font: inherit;
+    font-size: 14px;
+    line-height: 1;
+    transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  }
+  .search-clear:hover {
+    background: rgba(255, 107, 139, 0.22);
+    color: #ffb1c0;
+    transform: scale(1.08);
+  }
+  .search-clear:active { transform: scale(0.94); }
+
+  .search-kbd {
+    position: absolute;
+    right: 14px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--line);
+    color: var(--fg-dim);
+    font: inherit;
+    font-family: 'Space Grotesk', 'Inter', monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    transition: opacity 0.22s ease;
+  }
+
+  .search-meta {
+    margin-top: 8px;
+    font-size: 0.82rem;
+    color: var(--fg-dim);
+    min-height: 1.2em;
+    padding-left: 4px;
+    opacity: 0;
+    transform: translateY(-2px);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+  }
+  .search-meta.is-visible { opacity: 1; transform: translateY(0); }
+  .search-meta strong { color: var(--fg); font-weight: 600; }
+  .search-meta-match {
+    color: var(--accent-2);
+    font-weight: 500;
+  }
+
+  mark.search-mark {
+    background: linear-gradient(120deg, rgba(168, 123, 255, 0.38), rgba(56, 211, 255, 0.34));
+    color: #fff;
+    padding: 0 3px;
+    border-radius: 4px;
+    font-weight: inherit;
+    box-shadow: 0 0 0 1px rgba(168, 123, 255, 0.28);
+  }
+
+  .bookmarks { list-style: none; padding: 0; margin: 0; perspective: 1200px; }
+  .bookmark {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
+    transition:
+      border-color 0.25s ease,
+      background 0.25s ease,
+      transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.3s ease;
+    transform-origin: center left;
+    animation: bookmarkIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    transform-style: preserve-3d;
+    position: relative;
+  }
+  .bookmark + .bookmark { margin-top: 12px; }
+  .bookmark.filtered-out { display: none; }
+  @keyframes bookmarkIn {
+    0%   { opacity: 0; transform: perspective(900px) rotateY(-22deg) translateZ(-30px); }
+    100% { opacity: 1; transform: none; }
+  }
+  .bookmark:hover {
+    border-color: rgba(168, 123, 255, 0.4);
+    background: linear-gradient(180deg, rgba(168, 123, 255, 0.10), rgba(56, 211, 255, 0.04));
+    transform: perspective(900px) translateY(-2px) translateZ(8px) rotateX(-1deg);
+    box-shadow:
+      0 14px 30px -14px rgba(168, 123, 255, 0.55),
+      0 4px 10px -4px rgba(0,0,0,0.3);
+  }
+  .bookmark.removing {
+    animation: bookmarkOut 0.4s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards;
+  }
+  @keyframes bookmarkOut {
+    0%   { opacity: 1; transform: perspective(900px) rotateY(0deg) translateZ(0) translateX(0); max-height: 80px; margin-top: 12px; }
+    100% { opacity: 0; transform: perspective(900px) rotateY(35deg) translateZ(-80px) translateX(20px); max-height: 0; margin-top: 0; padding-top: 0; padding-bottom: 0; border-width: 0; }
+  }
+
+  .bookmark-favicon {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, rgba(168, 123, 255, 0.28), rgba(56, 211, 255, 0.22));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    flex-shrink: 0;
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    overflow: hidden;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.18),
+      0 4px 14px -6px rgba(168, 123, 255, 0.5);
+    transition: transform 0.3s ease;
+  }
+  .bookmark:hover .bookmark-favicon {
+    transform: perspective(400px) rotateY(12deg) scale(1.05);
+  }
+  .bookmark-favicon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .bookmark-content { min-width: 0; flex: 1; }
+  .bookmark-title {
+    display: block;
+    color: var(--fg);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.98rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color 0.22s ease;
+  }
+  .bookmark-title:hover { color: var(--accent-2); }
+  .bookmark-url {
+    display: block;
+    color: var(--fg-dim);
+    font-size: 0.82rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+
+  .skeleton {
+    height: 64px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(168, 123, 255, 0.10), rgba(255,255,255,0.04));
+    background-size: 200% 100%;
+    border-radius: var(--radius-sm);
+    animation: shimmer 1.6s infinite linear;
+  }
+  .skeleton + .skeleton { margin-top: 12px; }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .hidden { display: none !important; }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 480px) {
+    .app { padding: 18px 14px 80px; }
+    .auth-card { padding: 28px 22px; }
+    .card { padding: 22px 18px; }
+    .brand { font-size: 1.15rem; gap: 10px; }
+    .brand-mark { width: 36px; height: 36px; border-radius: 11px; }
+    .brand-mark svg { width: 18px; height: 18px; }
+    .user-email { display: none; }
+    .user-bar .btn-ghost { padding: 8px 14px; font-size: 0.88rem; }
+    .header { gap: 12px; }
+    .orb-3, .orb-4 { display: none; }
+    .auth-header h1 { font-size: 1.55rem; }
+  }
+
+  /* ---------- REDUCED MOTION ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+    .card.tilt { transform: none !important; }
+    .orb { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+</div>
+
+<div class="app">
+
+  <!-- AUTH SCREEN -->
+  <section id="view-auth" class="auth-wrap">
+    <div class="card auth-card" data-tilt>
+      <div class="auth-header">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+          </svg>
+        </div>
+        <h1>Bookmark Vault</h1>
+        <p id="auth-subtitle">Sign in to access your saved links</p>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Auth mode">
+        <button class="tab" role="tab" id="tab-signin" aria-selected="true" data-mode="signin">Sign in</button>
+        <button class="tab" role="tab" id="tab-signup" aria-selected="false" data-mode="signup">Sign up</button>
+      </div>
+
+      <form id="auth-form" novalidate>
+        <label class="field">
+          <span class="field-label">Email</span>
+          <input class="input" type="email" id="auth-email" name="email" placeholder="you@example.com" required autocomplete="email" />
+        </label>
+        <label class="field">
+          <span class="field-label">Password</span>
+          <input class="input" type="password" id="auth-password" name="password" placeholder="At least 6 characters" required minlength="6" autocomplete="current-password" />
+        </label>
+        <button type="submit" class="btn btn-primary" id="auth-submit">Sign in</button>
+        <div id="auth-banner" class="banner hidden" role="status"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- MAIN APP -->
+  <section id="view-main" class="hidden">
+    <header class="header">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+          </svg>
+        </div>
+        Bookmark Vault
+      </div>
+      <div class="user-bar">
+        <span class="user-email" id="user-email"></span>
+        <button class="btn btn-ghost" id="signout-btn" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <div class="card" data-tilt>
+      <h2 class="card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        Save a bookmark
+      </h2>
+      <form id="save-form" class="save-form" novalidate>
+        <div class="row-2">
+          <label class="field" style="margin: 0;">
+            <span class="field-label">URL</span>
+            <input class="input" type="url" id="bm-url" name="url" placeholder="https://example.com" required autocomplete="off" />
+          </label>
+          <label class="field" style="margin: 0;">
+            <span class="field-label">Title</span>
+            <input class="input" type="text" id="bm-title" name="title" placeholder="What is this?" required maxlength="200" autocomplete="off" />
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary" id="save-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+            <polyline points="17 21 17 13 7 13 7 21" />
+            <polyline points="7 3 7 8 15 8" />
+          </svg>
+          Save
+        </button>
+        <div id="save-banner" class="banner hidden" role="status"></div>
+      </form>
+    </div>
+
+    <div class="card" data-tilt>
+      <h2 class="card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-2);">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+        </svg>
+        Your bookmarks <span class="list-count" id="list-count"></span>
+      </h2>
+
+      <div class="search-row hidden" id="search-row">
+        <div class="search-input-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4.3-4.3" />
+          </svg>
+          <input
+            type="search"
+            id="search-input"
+            class="search-input"
+            placeholder="Search title or URL…"
+            autocomplete="off"
+            spellcheck="false"
+            aria-label="Search your bookmarks"
+          />
+          <button type="button" class="search-clear hidden" id="search-clear" aria-label="Clear search" title="Clear search (Esc)">×</button>
+          <kbd class="search-kbd" id="search-kbd" title="Press / to search">/</kbd>
+        </div>
+        <div class="search-meta" id="search-meta" aria-live="polite"></div>
+      </div>
+
+      <div id="list-loading">
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+      </div>
+      <div id="list-empty" class="list-empty hidden">
+        <div class="list-empty-icon">📚</div>
+        <div>No bookmarks yet. Save one above.</div>
+      </div>
+      <div id="list-no-match" class="list-empty hidden">
+        <div class="list-empty-icon">🔎</div>
+        <div>No bookmarks match “<span id="no-match-query"></span>”</div>
+      </div>
+      <ul id="list" class="bookmarks hidden" aria-live="polite"></ul>
+    </div>
+  </section>
+
+</div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+  const SUPABASE_URL = 'https://xhhmxabftbyxrirvvihn.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_NZHoIxqqpSvVBP8MrLHCYA_gmg1AbN-';
+  const TABLE = 'usr_nmexs7bytxq2_bookmarks';
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ---------- DOM ----------
+  const $ = (id) => document.getElementById(id);
+  const viewAuth = $('view-auth');
+  const viewMain = $('view-main');
+  const tabSignin = $('tab-signin');
+  const tabSignup = $('tab-signup');
+  const authSubtitle = $('auth-subtitle');
+  const authForm = $('auth-form');
+  const authEmail = $('auth-email');
+  const authPassword = $('auth-password');
+  const authSubmit = $('auth-submit');
+  const authBanner = $('auth-banner');
+  const userEmailEl = $('user-email');
+  const signoutBtn = $('signout-btn');
+  const saveForm = $('save-form');
+  const bmUrl = $('bm-url');
+  const bmTitle = $('bm-title');
+  const saveBtn = $('save-btn');
+  const saveBanner = $('save-banner');
+  const listLoading = $('list-loading');
+  const listEmpty = $('list-empty');
+  const listNoMatch = $('list-no-match');
+  const noMatchQuery = $('no-match-query');
+  const listEl = $('list');
+  const listCount = $('list-count');
+  const searchRow = $('search-row');
+  const searchInput = $('search-input');
+  const searchClear = $('search-clear');
+  const searchKbd = $('search-kbd');
+  const searchMeta = $('search-meta');
+
+  let mode = 'signin';
+  let currentUser = null;
+  let searchQuery = '';
+
+  // ---------- 3D TILT (cards tilt with cursor + glow halo) ----------
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function attachTilt(card) {
+    if (reduceMotion) return;
+    let raf = null;
+    const max = 6; // degrees
+
+    function update(e) {
+      const r = card.getBoundingClientRect();
+      const x = ((e.clientX ?? (e.touches && e.touches[0]?.clientX) ?? r.left + r.width / 2) - r.left);
+      const y = ((e.clientY ?? (e.touches && e.touches[0]?.clientY) ?? r.top + r.height / 2) - r.top);
+      const px = x / r.width;
+      const py = y / r.height;
+      const rx = (0.5 - py) * (max * 2);
+      const ry = (px - 0.5) * (max * 2);
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        card.style.setProperty('--tilt-x', `${rx.toFixed(2)}deg`);
+        card.style.setProperty('--tilt-y', `${ry.toFixed(2)}deg`);
+        card.style.setProperty('--mx', `${x}px`);
+        card.style.setProperty('--my', `${y}px`);
+      });
+    }
+    function enter() { card.classList.add('tilt', 'tilt-active'); }
+    function leave() {
+      card.classList.remove('tilt-active');
+      card.style.setProperty('--tilt-x', `0deg`);
+      card.style.setProperty('--tilt-y', `0deg`);
+      setTimeout(() => card.classList.remove('tilt'), 400);
+    }
+    card.addEventListener('pointerenter', enter);
+    card.addEventListener('pointermove', update);
+    card.addEventListener('pointerleave', leave);
+  }
+  document.querySelectorAll('[data-tilt]').forEach(attachTilt);
+
+  // ---------- HELPERS ----------
+  function setBanner(el, text, kind) {
+    if (!text) { el.classList.add('hidden'); el.textContent = ''; return; }
+    el.classList.remove('hidden', 'banner-error', 'banner-info', 'banner-success');
+    el.classList.add('banner', `banner-${kind}`);
+    el.textContent = text;
+  }
+
+  function setMode(next) {
+    mode = next;
+    const isSignup = next === 'signup';
+    tabSignin.setAttribute('aria-selected', String(!isSignup));
+    tabSignup.setAttribute('aria-selected', String(isSignup));
+    authSubmit.textContent = isSignup ? 'Create account' : 'Sign in';
+    authSubtitle.textContent = isSignup
+      ? 'Create an account to save your links'
+      : 'Sign in to access your saved links';
+    authPassword.setAttribute('autocomplete', isSignup ? 'new-password' : 'current-password');
+    setBanner(authBanner, '', 'info');
+  }
+
+  function initial(s) {
+    const t = (s || '?').trim();
+    return t ? t[0].toUpperCase() : '?';
+  }
+
+  function showView(name) {
+    if (name === 'main') {
+      viewAuth.classList.add('hidden');
+      viewMain.classList.remove('hidden');
+    } else {
+      viewAuth.classList.remove('hidden');
+      viewMain.classList.add('hidden');
+    }
+  }
+
+  // ---------- AUTH ----------
+  tabSignin.addEventListener('click', () => setMode('signin'));
+  tabSignup.addEventListener('click', () => setMode('signup'));
+
+  authForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = authEmail.value.trim();
+    const password = authPassword.value;
+    if (!email || !password) return;
+
+    authSubmit.disabled = true;
+    setBanner(authBanner, '', 'info');
+    const originalText = authSubmit.textContent;
+    authSubmit.textContent = mode === 'signup' ? 'Creating account…' : 'Signing in…';
+
+    try {
+      if (mode === 'signup') {
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        if (data.session) {
+          await onSignedIn(data.session.user);
+          return;
+        }
+        setMode('signin');
+        setBanner(
+          authBanner,
+          `Check ${email} for a confirmation link, then come back and sign in.`,
+          'info'
+        );
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        await onSignedIn(data.user);
+      }
+    } catch (err) {
+      const msg = err?.message || 'Something went wrong. Try again.';
+      setBanner(authBanner, msg, 'error');
+    } finally {
+      authSubmit.disabled = false;
+      authSubmit.textContent = originalText;
+    }
+  });
+
+  signoutBtn.addEventListener('click', async () => {
+    signoutBtn.disabled = true;
+    await supabase.auth.signOut();
+    currentUser = null;
+    listEl.innerHTML = '';
+    listEl.classList.add('hidden');
+    listEmpty.classList.add('hidden');
+    listNoMatch.classList.add('hidden');
+    searchRow.classList.add('hidden');
+    listLoading.classList.remove('hidden');
+    saveForm.reset();
+    setBanner(saveBanner, '', 'info');
+    searchInput.value = '';
+    searchQuery = '';
+    searchClear.classList.add('hidden');
+    searchKbd.classList.remove('hidden');
+    searchMeta.classList.remove('is-visible');
+    searchMeta.textContent = '';
+    showView('auth');
+    setMode('signin');
+    authEmail.value = '';
+    authPassword.value = '';
+    signoutBtn.disabled = false;
+  });
+
+  async function onSignedIn(user) {
+    currentUser = user;
+    userEmailEl.textContent = user.email || '';
+    userEmailEl.title = user.email || '';
+    showView('main');
+    await loadBookmarks();
+  }
+
+  // ---------- BOOKMARKS ----------
+  saveForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    const url = bmUrl.value.trim();
+    const title = bmTitle.value.trim();
+    if (!url || !title) return;
+
+    saveBtn.disabled = true;
+    setBanner(saveBanner, '', 'info');
+
+    try {
+      const { data, error } = await supabase
+        .from(TABLE)
+        .insert({ user_id: currentUser.id, url, title })
+        .select()
+        .single();
+      if (error) throw error;
+      prependBookmark(data);
+      saveForm.reset();
+      bmUrl.focus();
+    } catch (err) {
+      setBanner(saveBanner, err?.message || 'Could not save bookmark.', 'error');
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+
+  async function loadBookmarks() {
+    listLoading.classList.remove('hidden');
+    listEl.classList.add('hidden');
+    listEmpty.classList.add('hidden');
+    listNoMatch.classList.add('hidden');
+    searchRow.classList.add('hidden');
+    listEl.innerHTML = '';
+
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select('id, url, title, created_at')
+      .order('created_at', { ascending: false });
+
+    listLoading.classList.add('hidden');
+
+    if (error) {
+      setBanner(saveBanner, error.message || 'Could not load bookmarks.', 'error');
+      return;
+    }
+
+    if (data && data.length > 0) {
+      data.forEach((row, i) => appendBookmark(row, i));
+    }
+    applyFilter();
+  }
+
+  function updateCount() {
+    applyFilter();
+  }
+
+  function renderHighlighted(target, text, query) {
+    target.textContent = '';
+    if (!query) { target.appendChild(document.createTextNode(text)); return; }
+    const lower = text.toLowerCase();
+    const q = query.toLowerCase();
+    let i = 0;
+    while (i < text.length) {
+      const idx = lower.indexOf(q, i);
+      if (idx === -1) { target.appendChild(document.createTextNode(text.slice(i))); break; }
+      if (idx > i) target.appendChild(document.createTextNode(text.slice(i, idx)));
+      const mark = document.createElement('mark');
+      mark.className = 'search-mark';
+      mark.textContent = text.slice(idx, idx + q.length);
+      target.appendChild(mark);
+      i = idx + q.length;
+    }
+  }
+
+  function applyFilter() {
+    const q = searchQuery;
+    const qLower = q.toLowerCase();
+    const total = listEl.children.length;
+    let visible = 0;
+
+    for (const li of listEl.children) {
+      const titleText = li.dataset.titleText || '';
+      const urlText = li.dataset.urlText || '';
+      const isMatch = !q ||
+        titleText.toLowerCase().includes(qLower) ||
+        urlText.toLowerCase().includes(qLower);
+
+      const titleEl = li.querySelector('.bookmark-title');
+      const urlEl = li.querySelector('.bookmark-url');
+      if (titleEl) renderHighlighted(titleEl, titleText, isMatch ? q : '');
+      if (urlEl) renderHighlighted(urlEl, urlText, isMatch ? q : '');
+
+      if (isMatch) {
+        li.classList.remove('filtered-out');
+        visible++;
+      } else {
+        li.classList.add('filtered-out');
+      }
+    }
+
+    if (total === 0) {
+      listCount.textContent = '';
+      listEl.classList.add('hidden');
+      listNoMatch.classList.add('hidden');
+      listEmpty.classList.remove('hidden');
+      searchRow.classList.add('hidden');
+    } else {
+      searchRow.classList.remove('hidden');
+      listEmpty.classList.add('hidden');
+      if (q) {
+        listCount.textContent = `(${visible} of ${total})`;
+      } else {
+        listCount.textContent = `(${total})`;
+      }
+      if (q && visible === 0) {
+        listEl.classList.add('hidden');
+        listNoMatch.classList.remove('hidden');
+        noMatchQuery.textContent = q;
+      } else {
+        listEl.classList.remove('hidden');
+        listNoMatch.classList.add('hidden');
+      }
+    }
+
+    if (q) {
+      searchMeta.classList.add('is-visible');
+      if (visible === 0) {
+        searchMeta.innerHTML = `No matches for <strong>${escapeHtml(q)}</strong>.`;
+      } else if (visible === total) {
+        searchMeta.innerHTML = `Showing all <strong>${total}</strong>.`;
+      } else {
+        searchMeta.innerHTML = `<span class="search-meta-match">${visible}</span> of <strong>${total}</strong> match.`;
+      }
+    } else {
+      searchMeta.classList.remove('is-visible');
+      searchMeta.textContent = '';
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  function createRow(row, staggerIndex = 0) {
+    const li = document.createElement('li');
+    li.className = 'bookmark';
+    li.dataset.id = row.id;
+    li.dataset.titleText = row.title || '';
+    li.dataset.urlText = row.url || '';
+    if (staggerIndex > 0) {
+      li.style.animationDelay = `${Math.min(staggerIndex * 60, 600)}ms`;
+    }
+
+    const fav = document.createElement('div');
+    fav.className = 'bookmark-favicon';
+    fav.textContent = initial(row.title);
+
+    const content = document.createElement('div');
+    content.className = 'bookmark-content';
+
+    const a = document.createElement('a');
+    a.className = 'bookmark-title';
+    a.href = row.url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = row.title;
+    a.title = row.title;
+
+    const urlSpan = document.createElement('span');
+    urlSpan.className = 'bookmark-url';
+    urlSpan.textContent = row.url;
+    urlSpan.title = row.url;
+
+    content.appendChild(a);
+    content.appendChild(urlSpan);
+
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'btn btn-danger';
+    del.textContent = 'Delete';
+    del.dataset.action = 'delete';
+    del.addEventListener('click', () => deleteBookmark(row.id, li, del));
+
+    li.appendChild(fav);
+    li.appendChild(content);
+    li.appendChild(del);
+    return li;
+  }
+
+  function prependBookmark(row) {
+    const li = createRow(row);
+    if (listEl.firstChild) listEl.insertBefore(li, listEl.firstChild);
+    else listEl.appendChild(li);
+    updateCount();
+  }
+
+  function appendBookmark(row, staggerIndex = 0) {
+    listEl.appendChild(createRow(row, staggerIndex));
+  }
+
+  function setSearchQuery(next) {
+    searchQuery = next;
+    const hasQuery = next.length > 0;
+    searchClear.classList.toggle('hidden', !hasQuery);
+    searchKbd.classList.toggle('hidden', hasQuery || document.activeElement === searchInput);
+    applyFilter();
+  }
+
+  searchInput.addEventListener('input', () => setSearchQuery(searchInput.value));
+  searchInput.addEventListener('focus', () => searchKbd.classList.add('hidden'));
+  searchInput.addEventListener('blur', () => {
+    if (!searchQuery) searchKbd.classList.remove('hidden');
+  });
+  searchClear.addEventListener('click', () => {
+    searchInput.value = '';
+    setSearchQuery('');
+    searchInput.focus();
+  });
+  document.addEventListener('keydown', (e) => {
+    const ae = document.activeElement;
+    const inField = ae && /input|textarea|select/i.test(ae.tagName);
+    if (e.key === '/' && !inField && viewMain && !viewMain.classList.contains('hidden')) {
+      e.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+    } else if (e.key === 'Escape' && ae === searchInput) {
+      if (searchQuery) {
+        searchInput.value = '';
+        setSearchQuery('');
+      } else {
+        searchInput.blur();
+      }
+    }
+  });
+
+  async function deleteBookmark(id, li, btn) {
+    btn.disabled = true;
+    btn.textContent = 'Deleting…';
+    const { error } = await supabase.from(TABLE).delete().eq('id', id);
+    if (error) {
+      btn.disabled = false;
+      btn.textContent = 'Delete';
+      setBanner(saveBanner, error.message || 'Could not delete bookmark.', 'error');
+      return;
+    }
+    if (reduceMotion) {
+      li.remove();
+      updateCount();
+    } else {
+      li.classList.add('removing');
+      li.addEventListener('animationend', () => {
+        li.remove();
+        updateCount();
+      }, { once: true });
+    }
+  }
+
+  // ---------- BOOT ----------
+  (async function boot() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      await onSignedIn(session.user);
+    } else {
+      showView('auth');
+      setMode('signin');
+    }
+
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        currentUser = null;
+        showView('auth');
+      }
+    });
+  })();
+</script>
+</body>
+</html>
