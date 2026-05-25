@@ -3,6 +3,11 @@
 A single-page app for saving and managing your bookmarks. Sign in, paste a URL and a title,
 hit Save. Your bookmarks show up as a list of clickable links, each with a Delete button.
 
+The interface uses glassmorphic cards, a mesh-gradient background with floating animated
+orbs, cursor-tracked 3D tilt on every card, a slowly rotating 3D brand mark, and 3D
+flip-in/out entrance animations on bookmark rows. All motion respects
+`prefers-reduced-motion: reduce`.
+
 No build step, no framework, no node_modules. Just one HTML file.
 
 ## Stack
